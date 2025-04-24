@@ -1,0 +1,80 @@
+blueprint:
+  name: "Battery Alert: Shopping List & ToDo"
+  description: >
+    This blueprint monitors a battery sensor and creates two separate ToDo items:
+    
+    - A shopping item in your selected ToDo list
+    
+    - A task to replace the battery in another ToDo list
+    
+    
+    🧠 Uses the native Home Assistant ToDo integration or compatible custom todo.* lists.
+    
+    ✅ No shopping_list integration required.
+    
+    🚫 No plugins or custom helpers needed.
+    
+    
+    
+    Created by Daniel Boberg · Alles Automatisch  
+    
+    YouTube: https://youtube.com/@AllesAutomatisch  
+    
+    Snippets: https://alles-automatisch.de/snippets
+
+  domain: automation
+  source_url: https://alles-automatisch.de/snippets
+  author: Daniel Boberg (Alles Automatisch)
+
+  input:
+    battery_sensor:
+      name: Battery Sensor
+      selector:
+        entity:
+          domain: sensor
+    battery_name:
+      name: Device Name
+      selector:
+        text:
+    threshold:
+      name: Alert Threshold (%)
+      default: 10
+      selector:
+        number:
+          min: 1
+          max: 50
+          unit_of_measurement: '%'
+          mode: slider
+    todo_list_shopping:
+      name: ToDo List for Shopping
+      selector:
+        entity:
+          domain: todo
+    todo_list_tasks:
+      name: ToDo List for Battery Task
+      selector:
+        entity:
+          domain: todo
+
+mode: single
+
+variables:
+  battery_label: !input battery_name
+
+trigger:
+  - platform: numeric_state
+    entity_id: !input battery_sensor
+    below: !input threshold
+
+action:
+  - service: todo.add_item
+    data:
+      item: "Battery for {{ battery_label }}"
+    target:
+      entity_id: !input todo_list_shopping
+
+  - service: todo.add_item
+    data:
+      item: "Replace battery in {{ battery_label }}"
+    target:
+      entity_id: !input todo_list_tasks
